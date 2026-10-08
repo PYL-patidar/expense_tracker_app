@@ -13,16 +13,13 @@ COPY . .
 RUN mvn clean install -DskipTests 
 
 # Now base image of java eclipse-temurin
-#FROM eclipse-temurin:8u504-b01-jre-ubi9-minimal as deployer
 # destroless image of java 25
-#FROM gcr.io/distroless/java25-debian13 
-FROM eclipse-temurin:8u504-b01-jre-ubi10-minimal
+#FROM gcr.io/distroless/java25-debian13
+
+FROM eclipse-temurin:17-jre-jammy
 
 WORKDIR /app
 
 COPY --from=builder /app/target/*.jar /app/target/expense-tracker.jar
 
-CMD ["/app/target/expense-tracker.jar"]
-
-
-  
+CMD ["java", "-jar", "/app/target/expense-tracker.jar"]  
