@@ -1,42 +1,28 @@
-#———stage1 - jar builder ————-
+#base image for java spting boot app and for this perform many task to run this --> use maven
+#that's why maven use for code compile and pack into .jar
 
-# Maven image
+FROM maven:4.0.0-rc-7-eclipse-temurin-17 AS builder
 
-FROM maven:3.8.3-openjdk-17 AS builder 
+# code store workdirectroy
+WORKDIR /app
 
-# Set working directory
+# copy entire code to container
+COPY . .
+
+# run maven to compile code and build --> target/expense-tracker.jar
+RUN mvn clean install -DskipTests 
+
+# Now base image of java eclipse-temurin
+#FROM eclipse-temurin:8u504-b01-jre-ubi9-minimal as deployer
+# destroless image of java 25
+#FROM gcr.io/distroless/java25-debian13 
+FROM eclipse-temurin:8u504-b01-jre-ubi10-minimal
 
 WORKDIR /app
 
-# Copy source code from local to container
+COPY --from=builder /app/target/*.jar /app/target/expense-tracker.jar
 
-COPY . /app
+CMD ["/app/target/expense-tracker.jar"]
 
-# Build application and skip test cases
 
-#EXPOSE 8080
-
-RUN mvn clean install -DskipTests=true
-
-#ENTRYPOINT ["java", "-jar", "/expenseapp.jar"]
-
-#--------------------------------------
-# Stage 2 - app build
-#--------------------------------------
-
-# Import small size java image
-
-FROM openjdk:17-alpine
-
-WORKDIR /app 
-
-# Copy build from stage 1 (builder)
-
-COPY --from=builder /app/target/*.jar /app/target/expenseapp.jar
-
-# Expose application port 
-
-EXPOSE 8080
-
-# Start the application
-ENTRYPOINT ["java", "-jar", "/app/target/expenseapp.jar"]
+  
